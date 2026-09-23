@@ -1,0 +1,626 @@
+﻿<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>ELBOULAQY OS - مشغل الألعاب</title>
+  <style>
+    :root {
+      --bg-base: #07090e;
+      --bg-card: rgba(18, 22, 34, 0.75);
+      --neon-cyan: #00f3ff;
+      --neon-purple: #9d00ff;
+      --neon-red: #ff2a5f;
+      --neon-green: #00ff66;
+      --text-main: #f0f4fc;
+      --text-muted: #7b88a8;
+      --border-glass: rgba(0, 243, 255, 0.2);
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    body {
+      background: radial-gradient(circle at 50% 20%, #151a30 0%, var(--bg-base) 100%);
+      color: var(--text-main);
+      min-height: 100vh;
+      overflow-x: hidden;
+      padding-bottom: 30px;
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 20px;
+      backdrop-filter: blur(16px);
+      background: rgba(10, 14, 24, 0.85);
+      border-bottom: 1px solid var(--border-glass);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+    .logo-box {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .logo-badge {
+      width: 42px;
+      height: 42px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, var(--neon-cyan), var(--neon-purple));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 15px rgba(0, 243, 255, 0.4);
+      font-weight: 900;
+      font-size: 20px;
+      color: #000;
+    }
+    .logo-text h1 {
+      font-size: 16px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      background: linear-gradient(90deg, #fff, var(--neon-cyan));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .logo-text span {
+      font-size: 11px;
+      color: var(--neon-cyan);
+      display: block;
+    }
+    .icon-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-glass);
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 18px;
+    }
+    .container {
+      padding: 20px;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    .btn-add-main {
+      width: 100%;
+      background: linear-gradient(90deg, var(--neon-purple), var(--neon-cyan));
+      color: #fff;
+      border: none;
+      padding: 16px;
+      border-radius: 14px;
+      font-size: 16px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      box-shadow: 0 4px 20px rgba(0, 243, 255, 0.3);
+      cursor: pointer;
+      margin-bottom: 24px;
+    }
+    .section-title {
+      font-size: 14px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .empty-state {
+      background: var(--bg-card);
+      border: 1px dashed var(--border-glass);
+      border-radius: 18px;
+      padding: 50px 20px;
+      text-align: center;
+      margin-top: 20px;
+    }
+    .empty-state .icon {
+      font-size: 45px;
+      margin-bottom: 12px;
+      display: block;
+      color: var(--neon-cyan);
+    }
+    .empty-state h3 {
+      font-size: 17px;
+      margin-bottom: 6px;
+    }
+    .empty-state p {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+    .games-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 14px;
+    }
+    .game-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-glass);
+      border-radius: 16px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      backdrop-filter: blur(10px);
+    }
+    .game-card .icon-wrap {
+      width: 64px;
+      height: 64px;
+      border-radius: 14px;
+      background: #101526;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 10px;
+      overflow: hidden;
+    }
+    .game-card img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .game-name {
+      font-size: 14px;
+      font-weight: 700;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      width: 100%;
+      margin-bottom: 10px;
+    }
+    .game-actions {
+      display: flex;
+      gap: 6px;
+      width: 100%;
+    }
+    .btn-launch {
+      flex: 1;
+      background: linear-gradient(90deg, #00f3ff, #00b4d8);
+      color: #050811;
+      font-weight: 800;
+      font-size: 13px;
+      border: none;
+      padding: 9px;
+      border-radius: 9px;
+      cursor: pointer;
+    }
+    .btn-del {
+      background: rgba(255, 42, 95, 0.15);
+      border: 1px solid var(--neon-red);
+      color: var(--neon-red);
+      border-radius: 9px;
+      padding: 0 10px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(5, 7, 13, 0.85);
+      backdrop-filter: blur(14px);
+      z-index: 100;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .modal.active { display: flex; }
+    .modal-sheet {
+      background: #0f1322;
+      border: 1px solid var(--border-glass);
+      border-radius: 20px;
+      width: 100%;
+      max-width: 480px;
+      max-height: 85vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .modal-head {
+      padding: 18px 20px;
+      border-bottom: 1px solid var(--border-glass);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .modal-head h2 { font-size: 17px; }
+    .modal-body {
+      padding: 16px;
+      overflow-y: auto;
+      flex: 1;
+    }
+    .search-box {
+      width: 100%;
+      background: #171d33;
+      border: 1px solid var(--border-glass);
+      border-radius: 10px;
+      padding: 12px 14px;
+      color: #fff;
+      font-size: 14px;
+      outline: none;
+      margin-bottom: 14px;
+    }
+    .app-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 12px;
+      margin-bottom: 8px;
+    }
+    .app-item img {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+    }
+    .app-item .info {
+      flex: 1;
+      overflow: hidden;
+    }
+    .app-item .info h4 {
+      font-size: 14px;
+      margin-bottom: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .app-item .info p {
+      font-size: 11px;
+      color: var(--text-muted);
+      direction: ltr;
+      text-align: right;
+    }
+    .btn-pick {
+      background: var(--neon-cyan);
+      color: #000;
+      border: none;
+      font-weight: 800;
+      font-size: 12px;
+      padding: 8px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    .switch-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 48px;
+      height: 26px;
+    }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider {
+      position: absolute; cursor: pointer; inset: 0;
+      background-color: #2b334e;
+      transition: .3s;
+      border-radius: 26px;
+    }
+    .slider:before {
+      position: absolute; content: ""; height: 20px; width: 20px;
+      left: 3px; bottom: 3px;
+      background-color: white;
+      transition: .3s;
+      border-radius: 50%;
+    }
+    input:checked + .slider { background-color: var(--neon-cyan); }
+    input:checked + .slider:before { transform: translateX(22px); }
+    #splashScreen {
+      position: fixed;
+      inset: 0;
+      background: #030509;
+      z-index: 9999;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+    #splashScreen.show {
+      display: flex;
+      animation: fadeIn 0.3s forwards;
+    }
+    .splash-logo {
+      font-size: 42px;
+      font-weight: 900;
+      letter-spacing: 5px;
+      color: #fff;
+      text-transform: uppercase;
+      text-shadow: 0 0 20px var(--neon-cyan), 0 0 40px var(--neon-purple);
+      margin-bottom: 8px;
+    }
+    .splash-sub {
+      color: var(--neon-cyan);
+      font-size: 14px;
+      letter-spacing: 2px;
+      margin-bottom: 30px;
+    }
+    .splash-bar {
+      width: 200px;
+      height: 4px;
+      background: #171d33;
+      border-radius: 4px;
+      overflow: hidden;
+      position: relative;
+    }
+    .splash-bar:after {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; height: 100%; width: 40%;
+      background: linear-gradient(90deg, var(--neon-purple), var(--neon-cyan));
+      border-radius: 4px;
+      animation: barMove 1.5s infinite linear;
+    }
+    @keyframes barMove {
+      0% { left: -40%; }
+      100% { left: 100%; }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; } to { opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="splashScreen">
+    <div class="splash-logo">ELBOULAQY</div>
+    <div class="splash-sub">SYSTEM GAME LAUNCHER</div>
+    <div class="splash-bar"></div>
+  </div>
+
+  <header class="header">
+    <div class="logo-box">
+      <div class="logo-badge">B</div>
+      <div class="logo-text">
+        <h1>ELBOULAQY OS</h1>
+        <span>GAME LAUNCHER PRO</span>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="icon-btn" onclick="openSettingsModal()">⚙️</button>
+    </div>
+  </header>
+
+  <div class="container">
+    <button class="btn-add-main" onclick="openAppsPickerModal()">
+      <span>➕</span>
+      <span>إضافة لعبة أو تطبيق من جهازك</span>
+    </button>
+
+    <div class="section-title">
+      <span>مكتبة الألعاب المثبتة</span>
+      <span id="gamesCount">0 ألعاب</span>
+    </div>
+
+    <div id="emptyState" class="empty-state">
+      <span class="icon">🎮</span>
+      <h3>المكتبة فارغة تماماً</h3>
+      <p>اضغط على زر الإضافة لاختيار ألعاب وتطبيقات هاتفك</p>
+    </div>
+
+    <div id="gamesGrid" class="games-grid"></div>
+  </div>
+
+  <div id="appsModal" class="modal">
+    <div class="modal-sheet">
+      <div class="modal-head">
+        <h2>اختر تطبيق لإضافته</h2>
+        <button class="icon-btn" onclick="closeAppsPickerModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <input type="text" id="appSearchInput" class="search-box" placeholder="ابحث في تطبيقات هاتفك..." oninput="filterAppsList()">
+        <div id="installedAppsList"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="settingsModal" class="modal">
+    <div class="modal-sheet">
+      <div class="modal-head">
+        <h2>إعدادات الأمان والنظام</h2>
+        <button class="icon-btn" onclick="closeSettingsModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="switch-row">
+          <div>
+            <h4>تفعيل القفل بالرقم السري (PIN)</h4>
+            <p style="font-size:12px; color:var(--text-muted);">طلب رمز للدخول إلى المشغل</p>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="pinToggle" onchange="togglePinSecurity(this.checked)">
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <div class="switch-row">
+          <div>
+            <h4>تغيير الرقم السري</h4>
+            <p style="font-size:12px; color:var(--text-muted);">الرقم الحالي: <span id="currentPinView" style="color:var(--neon-cyan);">1234</span></p>
+          </div>
+          <button class="btn-pick" onclick="promptChangePin()">تغيير</button>
+        </div>
+
+        <div class="switch-row">
+          <div>
+            <h4>حماية بالبصمة (Biometrics)</h4>
+            <p style="font-size:12px; color:var(--text-muted);">استخدام بصمة الإصبع أو الوجه</p>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="biometricToggle" onchange="toggleBiometricSecurity(this.checked)">
+            <span class="slider"></span>
+          </label>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let installedApps = [];
+    let myGames = JSON.parse(localStorage.getItem('elboulaqy_games') || '[]');
+    let settings = JSON.parse(localStorage.getItem('elboulaqy_settings') || JSON.stringify({
+      pinEnabled: false,
+      pinCode: '1234',
+      bioEnabled: false
+    }));
+
+    function init() {
+      renderMyGames();
+      document.getElementById('pinToggle').checked = settings.pinEnabled;
+      document.getElementById('biometricToggle').checked = settings.bioEnabled;
+      document.getElementById('currentPinView').innerText = settings.pinCode;
+    }
+
+    function renderMyGames() {
+      const grid = document.getElementById('gamesGrid');
+      const empty = document.getElementById('emptyState');
+      const count = document.getElementById('gamesCount');
+
+      count.innerText = myGames.length + ' ألعاب';
+      if (myGames.length === 0) {
+        empty.style.display = 'block';
+        grid.innerHTML = '';
+        return;
+      }
+      empty.style.display = 'none';
+      grid.innerHTML = myGames.map((game, i) => `
+        <div class="game-card">
+          <div class="icon-wrap">
+            <img src="${game.icon}">
+          </div>
+          <div class="game-name">${game.name}</div>
+          <div class="game-actions">
+            <button class="btn-launch" onclick="launchGame('${game.package}')">تشغيل</button>
+            <button class="btn-del" onclick="deleteGame(${i})">✕</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function launchGame(packageName) {
+      const splash = document.getElementById('splashScreen');
+      splash.classList.add('show');
+      if (navigator.vibrate) navigator.vibrate(100);
+
+      setTimeout(() => {
+        splash.classList.remove('show');
+        if (window.AndroidLauncher && window.AndroidLauncher.launchApp) {
+          window.AndroidLauncher.launchApp(packageName);
+        } else {
+          alert('تشغيل: ' + packageName);
+        }
+      }, 2500);
+    }
+
+    function deleteGame(index) {
+      if (confirm('هل تريد إزالة اللعبة من المشغل؟')) {
+        myGames.splice(index, 1);
+        localStorage.setItem('elboulaqy_games', JSON.stringify(myGames));
+        renderMyGames();
+      }
+    }
+
+    function openAppsPickerModal() {
+      document.getElementById('appsModal').classList.add('active');
+      fetchRealDeviceApps();
+    }
+
+    function closeAppsPickerModal() {
+      document.getElementById('appsModal').classList.remove('active');
+    }
+
+    function fetchRealDeviceApps() {
+      if (window.AndroidLauncher && window.AndroidLauncher.getInstalledApps) {
+        try {
+          installedApps = JSON.parse(window.AndroidLauncher.getInstalledApps());
+          renderAppsList(installedApps);
+        } catch (e) { console.error(e); }
+      } else {
+        installedApps = [
+          { name: "PUBG Mobile", package: "com.tencent.ig", icon: "https://api.iconify.design/solar:gamepad-bold-duotone.svg?color=%2300f3ff" },
+          { name: "Free Fire", package: "com.dts.freefireth", icon: "https://api.iconify.design/solar:bomb-bold-duotone.svg?color=%23ff2a5f" }
+        ];
+        renderAppsList(installedApps);
+      }
+    }
+
+    function renderAppsList(list) {
+      const container = document.getElementById('installedAppsList');
+      if (list.length === 0) {
+        container.innerHTML = '<p style="text-align:center; padding:20px; color:var(--text-muted)">لا توجد نتائج</p>';
+        return;
+      }
+      container.innerHTML = list.map(app => `
+        <div class="app-item">
+          <img src="${app.icon}">
+          <div class="info">
+            <h4>${app.name}</h4>
+            <p>${app.package}</p>
+          </div>
+          <button class="btn-pick" onclick="addGameToLauncher('${app.name}', '${app.package}', '${app.icon}')">إضافة</button>
+        </div>
+      `).join('');
+    }
+
+    function filterAppsList() {
+      const q = document.getElementById('appSearchInput').value.toLowerCase();
+      renderAppsList(installedApps.filter(a => a.name.toLowerCase().includes(q) || a.package.toLowerCase().includes(q)));
+    }
+
+    function addGameToLauncher(name, pkg, icon) {
+      if (myGames.some(g => g.package === pkg)) {
+        alert('هذه اللعبة مضافة بالفعل');
+        return;
+      }
+      myGames.push({ name, package: pkg, icon });
+      localStorage.setItem('elboulaqy_games', JSON.stringify(myGames));
+      renderMyGames();
+      closeAppsPickerModal();
+    }
+
+    function openSettingsModal() { document.getElementById('settingsModal').classList.add('active'); }
+    function closeSettingsModal() { document.getElementById('settingsModal').classList.remove('active'); }
+
+    function togglePinSecurity(val) {
+      settings.pinEnabled = val;
+      localStorage.setItem('elboulaqy_settings', JSON.stringify(settings));
+    }
+
+    function toggleBiometricSecurity(val) {
+      settings.bioEnabled = val;
+      localStorage.setItem('elboulaqy_settings', JSON.stringify(settings));
+    }
+
+    function promptChangePin() {
+      const p = prompt('أدخل الرقم السري الجديد (4 أرقام):');
+      if (p && p.length === 4 && !isNaN(p)) {
+        settings.pinCode = p;
+        localStorage.setItem('elboulaqy_settings', JSON.stringify(settings));
+        document.getElementById('currentPinView').innerText = p;
+        alert('تم الحفظ بنجاح');
+      }
+    }
+
+    window.onload = init;
+  </script>
+</body>
+</html>
