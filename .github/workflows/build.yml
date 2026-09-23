@@ -1,0 +1,146 @@
+name: Build Elboulaqy APK
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Install Dependencies & Init Capacitor
+        run: |
+          npm init -y
+          npm install @capacitor/core @capacitor/cli @capacitor/android
+          npx cap add android
+
+      - name: Inject Android Permissions & Native Bridge
+        run: |
+          cat << 'EOF' > android/app/src/main/AndroidManifest.xml
+          <?xml version="1.0" encoding="utf-8"?>
+          <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:tools="http://schemas.android.com/tools"
+              package="com.elboulaqy.launcher">
+              <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" tools:ignore="QueryAllPackagesPermission" />
+              <uses-permission android:name="android.permission.USE_BIOMETRIC" />
+              <uses-permission android:name="android.permission.USE_FINGERPRINT" />
+              <uses-permission android:name="android.permission.VIBRATE" />
+              <uses-permission android:name="android.permission.INTERNET" />
+              <application
+                  android:allowBackup="true"
+                  android:icon="@mipmap/ic_launcher"
+                  android:label="ELBOULAQY OS"
+                  android:roundIcon="@mipmap/ic_launcher_round"
+                  android:supportsRtl="true"
+                  android:hardwareAccelerated="true"
+                  android:theme="@style/Theme.AppCompat.NoActionBar">
+                  <activity
+                      android:name=".MainActivity"
+                      android:exported="true"
+                      android:screenOrientation="portrait"
+                      android:launchMode="singleTask"
+                      android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode">
+                      <intent-filter>
+                          <action android:name="android.intent.action.MAIN" />
+                          <category android:name="android.intent.category.LAUNCHER" />
+                      </intent-filter>
+                  </activity>
+              </application>
+          </manifest>
+          EOF
+
+          cat << 'EOF' > android/app/src/main/java/com/elboulaqy/launcher/MainActivity.java
+          package com.elboulaqy.launcher;
+          import android.content.Intent;
+          import android.content.pm.ApplicationInfo;
+          import android.content.pm.PackageManager;
+          import android.graphics.Bitmap;
+          import android.graphics.Canvas;
+          import android.graphics.drawable.BitmapDrawable;
+          import android.graphics.drawable.Drawable;
+          import android.os.Bundle;
+          import android.util.Base64;
+          import android.webkit.JavascriptInterface;
+          import android.webkit.WebView;
+          import com.getcapacitor.BridgeActivity;
+          import org.json.JSONArray;
+          import org.json.JSONObject;
+          import java.io.ByteArrayOutputStream;
+          import java.util.List;
+
+          public class MainActivity extends BridgeActivity {
+              @Override
+              public void onCreate(Bundle savedInstanceState) {
+                  super.onCreate(savedInstanceState);
+                  WebView webView = this.getBridge().getWebView();
+                  webView.addJavascriptInterface(new AndroidLauncherBridge(), "AndroidLauncher");
+              }
+              public class AndroidLauncherBridge {
+                  @JavascriptInterface
+                  public String getInstalledApps() {
+                      JSONArray appsList = new JSONArray();
+                      PackageManager pm = getPackageManager();
+                      List<ApplicationInfo> packages = pm.getInstalledApplications(PackageManager.GET_META_DATA);
+                      for (ApplicationInfo packageInfo : packages) {
+                          if (pm.getLaunchIntentForPackage(packageInfo.packageName) != null) {
+                              try {
+                                  JSONObject appObj = new JSONObject();
+                                  appObj.put("name", pm.getApplicationLabel(packageInfo).toString());
+                                  appObj.put("package", packageInfo.packageName);
+                                  Drawable d = pm.getApplicationIcon(packageInfo);
+                                  Bitmap b;
+                                  if (d instanceof BitmapDrawable) { b = ((BitmapDrawable) d).getBitmap(); }
+                                  else {
+                                      b = Bitmap.createBitmap(d.getIntrinsicWidth(), d.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
+                                      Canvas c = new Canvas(b);
+                                      d.setBounds(0, 0, c.getWidth(), c.getHeight());
+                                      d.draw(c);
+                                  }
+                                  ByteArrayOutputStream s = new ByteArrayOutputStream();
+                                  b.compress(Bitmap.CompressFormat.PNG, 80, s);
+                                  appObj.put("icon", "data:image/png;base64," + Base64.encodeToString(s.toByteArray(), Base64.NO_WRAP));
+                                  appsList.put(appObj);
+                              } catch (Exception ignored) {}
+                          }
+                      }
+                      return appsList.toString();
+                  }
+                  @JavascriptInterface
+                  public void launchApp(String packageName) {
+                      Intent launchIntent = getPackageManager().getLaunchIntentForPackage(packageName);
+                      if (launchIntent != null) { startActivity(launchIntent); }
+                  }
+              }
+          }
+          EOF
+
+      - name: Sync Capacitor
+        run: npx cap sync android
+
+      - name: Build Debug APK
+        run: |
+          cd android
+          chmod +x ./gradlew
+          ./gradlew assembleDebug
+
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ELBOULAQY-OS-APK
+          path: android/app/build/outputs/apk/debug/app-debug.apk
