@@ -24,14 +24,10 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Accept Android SDK Licenses
-        run: |
-          yes | sdkmanager --licenses || true
-
-      - name: Install Dependencies & Init Capacitor
+      - name: Install Capacitor 6
         run: |
           npm init -y
-          npm install @capacitor/core @capacitor/cli @capacitor/android
+          npm install @capacitor/core@^6.0.0 @capacitor/cli@^6.0.0 @capacitor/android@^6.0.0
           npx cap add android
 
       - name: Inject Android Permissions & Native Bridge
@@ -140,8 +136,8 @@ jobs:
       - name: Build Debug APK
         run: |
           cd android
-          chmod +x ./gradlew
-          ./gradlew assembleDebug
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
